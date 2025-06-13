@@ -11,12 +11,12 @@ The notebook explores:
   * Measure qubits
 
 - Decoding Surface Codes
-  Defect
-  Minimum-Weight Perfect Matching (MWPM)
-  MWPM decoder of surface codes
-  Syndrome subgraphs
-  Decoding process: setting error paths on the surface codes
-  MWPM algorithms and their complexities
+  * Defect
+  * Minimum-Weight Perfect Matching (MWPM)
+  * MWPM decoder of surface codes
+  * Syndrome subgraphs
+  * Decoding process: setting error paths on the surface codes
+  * MWPM algorithms and their complexities
 
 - Future work
 - References
