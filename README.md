@@ -6,9 +6,9 @@ The notebook explores:
 
 - Basics of Surface Codes
   
-  Planar surface codes
-  Syndrome extractions
-  Measure qubits
+  * Planar surface codes
+  * Syndrome extractions
+  * Measure qubits
 
 - Decoding Surface Codes
   Defect
