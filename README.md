@@ -5,6 +5,7 @@ This notebook is a mini-survey on surface codes, a leading framework for topolog
 The notebook explores: 
 
 - Basics of Surface Codes
+  
   Planar surface codes
   Syndrome extractions
   Measure qubits
