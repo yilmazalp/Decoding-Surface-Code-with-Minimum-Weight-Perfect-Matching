@@ -98,6 +98,25 @@ def build_z_graph(syndrome: list):
 
     return G
 
+# getting minimum-weight perfect matchings
+def generate_matchings(nodes):
+    if len(nodes) == 0:
+        return [[]]
+
+    first = nodes[0]
+    matchings = []
+
+    for i in range(1, len(nodes)):
+        partner = nodes[i]
+
+        remaining_nodes = nodes[1:i] + nodes[i+1:]
+        remaining_matchings = generate_matchings(remaining_nodes)
+
+        for matching in remaining_matchings:
+            matchings.append([(first, partner)] + matching)
+
+    return matchings
+
 
 G = build_z_graph([0, 5])
 
