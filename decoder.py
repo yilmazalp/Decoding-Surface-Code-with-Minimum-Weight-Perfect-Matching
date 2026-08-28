@@ -1,4 +1,6 @@
 import random
+
+import networkx
 import networkx as nx
 import numpy as np
 import pandas as pd
@@ -112,10 +114,27 @@ def generate_matchings(nodes):
         remaining_nodes = nodes[1:i] + nodes[i+1:]
         remaining_matchings = generate_matchings(remaining_nodes)
 
+        # recursively generate matchings
         for matching in remaining_matchings:
             matchings.append([(first, partner)] + matching)
 
     return matchings
+
+# find the minimum weight perfect matching
+def minimum_weight_of_perfect_matchings(graph):
+    matchings = generate_matchings(graph.nodes)
+    weight_sum_list = []
+
+    for matches in matchings:
+        weight_sum = 0
+        for edge in matches:
+            weight_sum += graph.get_edge_data(edge[0], edge[1])["weight"]
+        weight_sum_list.append(weight_sum)
+
+    minimum_weight = min(weight_sum_list)
+    min_weight_index = weight_sum_list.index(minimum_weight)
+
+    return minimum_weight, matchings[min_weight_index]
 
 
 G = build_z_graph([0, 5])
