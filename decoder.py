@@ -1,6 +1,4 @@
 import random
-
-import networkx
 import networkx as nx
 import numpy as np
 import pandas as pd
@@ -114,7 +112,7 @@ def generate_matchings(nodes):
         remaining_nodes = nodes[1:i] + nodes[i+1:]
         remaining_matchings = generate_matchings(remaining_nodes)
 
-        # recursively generate matchings
+        # recursive matching
         for matching in remaining_matchings:
             matchings.append([(first, partner)] + matching)
 
@@ -135,6 +133,24 @@ def minimum_weight_of_perfect_matchings(graph):
     min_weight_index = weight_sum_list.index(minimum_weight)
 
     return minimum_weight, matchings[min_weight_index]
+
+#build the decoding graph
+def decoding_graph(x_check_list, data_qubits):
+    G = nx.Graph()
+
+    G.add_nodes_from(x_stabilizers.keys())
+
+
+    for qubit in data_qubits:
+
+        checks = []
+
+        for check in x_stabilizers:
+            if qubit in x_stabilizers[check]:
+                checks.append(check)
+
+        if len(checks)==2:
+            G.add_edge(checks[0], checks[1], qubit=qubit, weight=1)
 
 
 G = build_z_graph([0, 5])
