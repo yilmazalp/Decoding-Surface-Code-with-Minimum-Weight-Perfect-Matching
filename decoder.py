@@ -75,17 +75,24 @@ def generate_z_error(number_of_data_qubits: int, p: float) -> list[int]:
 # compute distance
 def compute_distance(p1, p2):
     return sum(abs(a - b) for a, b in zip(p1, p2))
-
+# visualization coordinates only
 x_coordinates = {
-        0: (0, 0),
-        1: (1, 0),
-        2: (2, 0),
-        3: (0, 1),
-        4: (1, 1),
-        5: (2, 1),
-    }
+    0: (0, 1),
+    1: (2, 1),
+    2: (4, 1),
+    3: (0, 3),
+    4: (2, 3),
+    5: (4, 3),
+}
 
-
+z_coordinates = {
+    0: (1, 0),
+    1: (3, 0),
+    2: (1, 2),
+    3: (3, 2),
+    4: (1, 4),
+    5: (3, 4),
+}
 # build the syndrome graph
 def build_z_graph(syndrome: list):
     G = nx.Graph()
@@ -153,38 +160,79 @@ def decoding_graph(data_qubits):
 
     return G
 
+# a helper to extract the correction chain from the matching
+def extract_error_chain_from_matching(matching, decoding_G):
+    error_chain = []
+    path_edges = []
+    check_paths = []
+
+    for u, v in matching:
+        path = nx.shortest_path(decoding_G, source=u, target=v, weight="weight")
+        check_paths.append(path)
+
+        for a, b in zip(path[:-1], path[1:]):
+            path_edges.append((a, b))
+            error_chain.append(decoding_G[a][b]["qubit"])
+
+    return error_chain, path_edges, check_paths
+
+# plot the syndrome graph and highlight the MWPM edges
+def plot_syndrome_graph(syndrome, syndrome_G, matching):
+    pos = {node: x_coordinates[node] for node in syndrome_G.nodes}
+
+    plt.figure(figsize=(6, 4))
+    nx.draw(syndrome_G, pos=pos, with_labels=True, node_color="lightblue", node_size=700, edge_color="gray")
+
+    edge_labels = nx.get_edge_attributes(syndrome_G, "weight")
+    nx.draw_networkx_edge_labels(syndrome_G, pos, edge_labels=edge_labels)
+
+    nx.draw_networkx_nodes(syndrome_G, pos, nodelist=syndrome, node_color="orange",node_size=800)
+    nx.draw_networkx_edges(syndrome_G, pos, edgelist=matching, edge_color="red", width=3)
+
+    plt.title("Syndrome graph (red = MWPM)")
+    plt.axis("off")
+    plt.show()
+
+# plot the decoding graph and highlight the actual correction path
+def plot_decoding_graph_with_path(decoding_G, syndrome, matching):
+    pos = x_coordinates  # positions of X-checks
+
+    plt.figure(figsize=(6, 4))
+
+    nx.draw(decoding_G, pos=pos, with_labels=True, node_color="lightblue", node_size=700, edge_color="gray")
+
+    # label each decoding-graph edge by the data qubit it represents
+    edge_labels = {(u, v): d["qubit"] for u, v, d in decoding_G.edges(data=True)}
+    nx.draw_networkx_edge_labels(decoding_G, pos, edge_labels=edge_labels)
+
+    # highlight syndrome checks
+    nx.draw_networkx_nodes(decoding_G, pos, nodelist=syndrome, node_color="orange", node_size=800)
+
+    error_chain, path_edges, check_paths = extract_error_chain_from_matching(matching, decoding_G)
+
+    # highlight actual chosen correction path(s)
+    nx.draw_networkx_edges(decoding_G, pos, edgelist=path_edges, edge_color="red", width=4)
+
+    plt.title("Decoding graph (red = correction path)")
+    plt.axis("off")
+    plt.show()
+
+    print("Check paths:", check_paths)
+    print("Estimated Z-error chain:", error_chain)
+
 syndrome = [0,1,4,5]
-G = build_z_graph(syndrome)
-matchings = generate_matchings(list(G.nodes))
-print("All matchings: ")
 
-for match in matchings:
-    print(match)
+syndrome_graph = build_z_graph(syndrome)
 
-minimum_weight, best_matching = minimum_weight_of_perfect_matchings(G)
+minimum_weight, best_matching = minimum_weight_of_perfect_matchings(syndrome_graph)
 print("Minimum weight: ", minimum_weight)
 print("Best matching: ", best_matching)
 
-
+plot_syndrome_graph(syndrome, syndrome_graph, best_matching)
 d = decoding_graph(data_qubits)
+plot_decoding_graph_with_path(d, syndrome, best_matching)
 
-estimated_error = []
+estimated_error, _, _ = extract_error_chain_from_matching(best_matching, d)
 
-for u,v in best_matching:
-    check_path = nx.shortest_path(d, u, v)
-
-    print("check path:", check_path)
-
-    for a, b in zip(check_path[:-1], check_path[1:]):
-        estimated_error.append(d[a][b]["qubit"])
-
-print("Estimated Z-error chain:", estimated_error)
-print("Syndrome of estimated chain:", extract_z_syndrome(estimated_error, x_stabilizers))
-
-pos = {node: x_coordinates[node] for node in G.nodes}
-nx.draw(G, pos=pos, with_labels=True, node_color="lightblue", node_size=500)
-
-edge_labels = nx.get_edge_attributes(G, "weight")
-nx.draw_networkx_edge_labels(G, pos, edge_labels=edge_labels)
-
-plt.show()
+print("Estimated error chain:", estimated_error)
+print("Recovered syndrome:", extract_z_syndrome(estimated_error, x_stabilizers))
