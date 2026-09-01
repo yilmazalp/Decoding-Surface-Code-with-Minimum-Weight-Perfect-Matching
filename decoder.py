@@ -120,7 +120,7 @@ def generate_matchings(nodes):
 
 # find the minimum weight perfect matching
 def minimum_weight_of_perfect_matchings(graph):
-    matchings = generate_matchings(graph.nodes)
+    matchings = generate_matchings(list(graph.nodes))
     weight_sum_list = []
 
     for matches in matchings:
@@ -135,11 +135,10 @@ def minimum_weight_of_perfect_matchings(graph):
     return minimum_weight, matchings[min_weight_index]
 
 #build the decoding graph
-def decoding_graph(x_check_list, data_qubits):
+def decoding_graph(data_qubits):
     G = nx.Graph()
 
     G.add_nodes_from(x_stabilizers.keys())
-
 
     for qubit in data_qubits:
 
@@ -154,11 +153,35 @@ def decoding_graph(x_check_list, data_qubits):
 
     return G
 
+syndrome = [0,1,4,5]
+G = build_z_graph(syndrome)
+matchings = generate_matchings(list(G.nodes))
+print("All matchings: ")
 
-G = build_z_graph([0, 5])
+for match in matchings:
+    print(match)
+
+minimum_weight, best_matching = minimum_weight_of_perfect_matchings(G)
+print("Minimum weight: ", minimum_weight)
+print("Best matching: ", best_matching)
+
+
+d = decoding_graph(data_qubits)
+
+estimated_error = []
+
+for u,v in best_matching:
+    check_path = nx.shortest_path(d, u, v)
+
+    print("check path:", check_path)
+
+    for a, b in zip(check_path[:-1], check_path[1:]):
+        estimated_error.append(d[a][b]["qubit"])
+
+print("Estimated Z-error chain:", estimated_error)
+print("Syndrome of estimated chain:", extract_z_syndrome(estimated_error, x_stabilizers))
 
 pos = {node: x_coordinates[node] for node in G.nodes}
-
 nx.draw(G, pos=pos, with_labels=True, node_color="lightblue", node_size=500)
 
 edge_labels = nx.get_edge_attributes(G, "weight")
