@@ -152,6 +152,8 @@ def decoding_graph(x_check_list, data_qubits):
         if len(checks)==2:
             G.add_edge(checks[0], checks[1], qubit=qubit, weight=1)
 
+    return G
+
 
 G = build_z_graph([0, 5])
 
