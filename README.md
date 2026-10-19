@@ -17,9 +17,3 @@ The notebook explores:
   * Syndrome subgraphs
   * Decoding process: setting error paths on the surface codes
   * MWPM algorithms and their complexities
-
-- Future work
-- References
-
-## License
-This project is shared under the MIT License. Feel free to use, modify, and share it with attribution.
